@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace ModernNotify
 {
-    public partial class frmNotify : Form
+    internal partial class frmNotify : Form
     {
         [DllImport("user32.dll")]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
