@@ -26,6 +26,10 @@ namespace ModernNotify
         private float NotifyScale { get; set; } = 1.0f;
         private bool ScaleDir = false; // false=>to original, true=>to small
 
+        private int[] CloseOverlay = new int[] { 0x60, 0x00, 0x30 };
+        private Image CloseImage => Properties.Resources.CloseButton;
+        private int CloseState = 0;
+
         public frmNotify(NotifyData notify)
         {
             InitializeComponent();
@@ -39,9 +43,9 @@ namespace ModernNotify
                 SoundPlayer snd = new SoundPlayer(stream);
                 snd.Play();
             }
-
             this.Source = notify;
 
+            // TopMost
             SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
             EnterX = 360;
@@ -63,31 +67,42 @@ namespace ModernNotify
                 {
                     g.DrawImage(
                         this.Source.Icon,
-                        new Rectangle(10, 10, 16, 16)
+                        new Rectangle(10, 10, this.Source.IconSize, this.Source.IconSize)
                     );
 
+                    SizeF sz = g.MeasureString(this.Source.Title, this.Font, 302 - this.Source.IconSize);
                     g.DrawString(
                         this.Source.Title,
                         this.Font,
                         new SolidBrush(Extension.RgbColor(0xffffff)),
-                        new Point(36, 6)
+                        new Point(18 + this.Source.IconSize, 6)
                     );
+
                     g.DrawString(
                         this.Source.Content,
                         this.Font,
                         new SolidBrush(Extension.RgbColor(0xa5a5a5)),
-                        new Rectangle(36, 26, 288, this.Height - 28)
+                        new Rectangle(18 + this.Source.IconSize, 6 + (int)sz.Height - 2, 302 - this.Source.IconSize, this.Height - 28)
                     );
                 }
 
                 Graphics g2 = e.Graphics;
 
-                g2.ResetTransform();
                 g2.TranslateTransform(this.ClientSize.Width / 2, this.ClientSize.Height / 2);
                 g2.ScaleTransform(NotifyScale, NotifyScale);
                 g2.TranslateTransform(-buffer.Width / 2, -buffer.Height / 2);
 
                 g2.DrawImage(buffer, 0, 0);
+                g2.ResetTransform();
+
+                if (MouseEntered)
+                {
+                    g2.DrawImage(CloseImage, 360 - 24 + 2, 8 + 2, 12, 12);
+                    g2.FillRectangle(
+                        new SolidBrush(Color.FromArgb(CloseOverlay[CloseState], this.BackColor)),
+                        new Rectangle(360 - 24, 8, 16, 16)
+                    );
+                }
             }
         }
 
@@ -99,24 +114,30 @@ namespace ModernNotify
         private void PrepareDrawing()
         {
             Graphics g = Graphics.FromImage(new Bitmap(1, 1));
-            SizeF contentSize = g.MeasureString(this.Source.Content, this.Font, 288);
+
+            SizeF contentSize = g.MeasureString(
+                this.Source.Title + Environment.NewLine + this.Source.Content,
+                this.Font,
+                326 - this.Source.IconSize
+            );
 
             Rectangle rc = Screen.PrimaryScreen.WorkingArea; // Screen size
 
             int Left = rc.Right - 360;
             int Top = rc.Bottom - this.Height - 16;
-            int Height = (int)contentSize.Height + 40;
+            int Height = Math.Max((int)contentSize.Height + 20, this.Source.IconSize + 36);
 
             this.Size = new Size(360 - EnterX + EnterXDelta, Height);
             this.Location = new Point(Left + EnterX, Top);
 
             this.Invalidate();
-            this.Update();
         }
 
         private void frmNotify_MouseEnter(object sender, EventArgs e)
         {
             MouseEntered = true;
+            this.PrepareDrawing();
+
             if (tmrEnter.Enabled == false)
                 this.tmrClose.Enabled = !MouseEntered;
         }
@@ -124,25 +145,40 @@ namespace ModernNotify
         private void frmNotify_MouseLeave(object sender, EventArgs e)
         {
             MouseEntered = false;
+
             if (tmrEnter.Enabled == false)
                 this.tmrClose.Enabled = !MouseEntered;
         }
 
         private void frmNotify_MouseDown(object sender, MouseEventArgs e)
         {
+            if (IsInClose(e.X, e.Y))
+            {
+                CloseState = 2;
+                this.PrepareDrawing();
+                return;
+            }
+
             if (Processed) return;
             ScaleDir = true;
         }
 
         private void frmNotify_MouseUp(object sender, MouseEventArgs e)
         {
-            ScaleDir = false;
-        }
+            if (CloseState == 2)
+            {
+                if (IsInClose(e.X, e.Y)) // Click
+                    this.Close();
 
-        private void frmNotify_Click(object sender, EventArgs e)
-        {
+                CloseState = 0;
+                this.PrepareDrawing();
+                return;
+            }
+
             if (Processed) return;
             Processed = true;
+
+            ScaleDir = false;
         }
 
         private void tmrClose_Tick(object sender, EventArgs e)
@@ -188,6 +224,26 @@ namespace ModernNotify
 
             NotifyScale -= v;
             this.PrepareDrawing();
+        }
+
+        private bool IsInClose(int X, int Y)
+        {
+            return X >= 360 - 24 && Y >= 8 && X <= 360 - 8 && Y <= 24;
+        }
+
+        private void frmNotify_MouseMove(object sender, MouseEventArgs e)
+        {
+            var p = CloseState;
+            if (IsInClose(e.X, e.Y))
+            {
+                CloseState = (CloseState == 2) ? 2 : 1;
+                if (p != CloseState) this.PrepareDrawing();
+            }
+            else
+            {
+                CloseState = (CloseState == 2) ? 2 : 0;
+                if (p != CloseState) this.PrepareDrawing();
+            }
         }
     }
 }

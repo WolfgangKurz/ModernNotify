@@ -56,7 +56,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(31)))), ((int)(((byte)(31)))));
-            this.ClientSize = new System.Drawing.Size(674, 151);
+            this.ClientSize = new System.Drawing.Size(294, 124);
             this.DoubleBuffered = true;
             this.Font = new System.Drawing.Font("맑은 고딕", 11.25F);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -65,11 +65,11 @@
             this.ShowInTaskbar = false;
             this.Text = "frmNotify";
             this.TopMost = true;
-            this.Click += new System.EventHandler(this.frmNotify_Click);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.frmNotify_Paint);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.frmNotify_MouseDown);
             this.MouseEnter += new System.EventHandler(this.frmNotify_MouseEnter);
             this.MouseLeave += new System.EventHandler(this.frmNotify_MouseLeave);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.frmNotify_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.frmNotify_MouseUp);
             this.Resize += new System.EventHandler(this.frmNotify_Resize);
             this.ResumeLayout(false);

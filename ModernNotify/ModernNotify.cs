@@ -10,25 +10,41 @@ namespace ModernNotify
     public class ModernNotify
     {
         public static ModernNotify Instance => new ModernNotify();
+        private static frmNotify NotifyInstance { get; set; }
 
-        public void Notify(NotifyData Notify)
+        public bool Notify(NotifyData Notify)
         {
-            var form = new frmNotify(Notify);
-            form.Show();
+            try
+            {
+                NotifyInstance = new frmNotify(Notify);
+                NotifyInstance.Show();
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Notify.Failed?.Invoke(e);
+
+                return false;
+            }
         }
 
         /*
-        * For Debug
+        // For Debug
         public static void Main() {
             ModernNotify.Instance.Notify(new NotifyData()
             {
                 Title = "TEST",
                 Content = "TEST TEST TEST TEST",
-                Activated = () => Application.Exit()
+                Activated = () =>
+                {
+                    MessageBox.Show("Activated");
+                    Application.Exit();
+                }
             });
 
-            Application.Run();
+            Application.Run(NotifyInstance);
         }
-        */
+        // */
     }
 }
