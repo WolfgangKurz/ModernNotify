@@ -65,6 +65,8 @@ namespace ModernNotify
                 Bitmap buffer = new Bitmap(this.ClientSize.Width - 8, this.ClientSize.Height - 8);
                 using (Graphics g = Graphics.FromImage(buffer))
                 {
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+
                     g.DrawImage(
                         this.Source.Icon,
                         new Rectangle(10, 10, this.Source.IconSize, this.Source.IconSize)
@@ -118,7 +120,7 @@ namespace ModernNotify
             SizeF contentSize = g.MeasureString(
                 this.Source.Title + Environment.NewLine + this.Source.Content,
                 this.Font,
-                326 - this.Source.IconSize
+                302 - this.Source.IconSize
             );
 
             Rectangle rc = Screen.PrimaryScreen.WorkingArea; // Screen size
@@ -145,6 +147,7 @@ namespace ModernNotify
         private void frmNotify_MouseLeave(object sender, EventArgs e)
         {
             MouseEntered = false;
+            this.PrepareDrawing();
 
             if (tmrEnter.Enabled == false)
                 this.tmrClose.Enabled = !MouseEntered;
@@ -175,8 +178,11 @@ namespace ModernNotify
                 return;
             }
 
-            if (Processed) return;
-            Processed = true;
+            if (e.X >= 0 && e.Y >= 0 && e.X < this.ClientSize.Width && e.Y < this.ClientSize.Height)
+            {
+                if (Processed) return;
+                Processed = true;
+            }
 
             ScaleDir = false;
         }
